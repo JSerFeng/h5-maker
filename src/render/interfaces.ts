@@ -1,59 +1,55 @@
-import { Rule } from "antd/lib/form";
+import { ComponentClass, CSSProperties, FC } from "react";
 
-
-
-export enum ContentType {
-  ApplicationJson = "application/json",
-  MultipartFormData = "multipart/form-data",
+export enum EditorTypes {
+  Color = "Color",
+  Upload = "Upload",
+  Text = "Text",
+  Number = "Number",
 }
 
+export type ReactComp<T> = FC<T> | ComponentClass<T>
 
-export type ItemTypes = "text" | "password" | "url" |
-  "switch" | "slider" | "radio" | "checkbox" | "submit"
-
-
-export interface MainConfig {
-  request: {
-    method: "GET" | "POST" | "DELETE" | "PUT",
-    url: string,
-    contentType?: "application/json" | "multipart/form-data" | "multipart/url-encoded",
-  },
-  components: ConfigItem[],
-  layout?: {
-    labelCol: { span?: number, offset?: number },
-    wrapperCol: { span?: number, offset?: number },
-    w: number,
-    h: number,
-  }
+export interface Pos {
+  x: number, y: number, w: number, h: number
 }
 
-export interface ConfigItem {
-  id?: Symbol,
-  type: ItemTypes,
-  label: string,
+export interface EditorConfig {
+  key: string,
   name: string,
-  layout: {
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    zIndex: number,
-    labelAlign: "left" | "right",
-    labelCol?: { span?: number, offset?: number },
-    noStyle?: boolean
-  },
-  /**组件特有参数 */
-  props?: {
-    options?: { label: string, value: any }[],
-  }
-  placeholder?: string,
-  defaultValue?: string | boolean,
-  required?: boolean,
-  rules?: Rule[],
-  style?: {
-    fontSize: number,
-    color: string,
-    backgroundColor: string,
-    fontWeight: number | string
-  }
+  type: EditorTypes
 }
+export interface WidgetConfig {
+  name: string,
+  editorConfig: EditorConfig[],
+  config: { [k: string]: any },
+  pos: Pos, //位置信息
+  style?: Partial<CSSProperties>, //样式信息
+}
+
+export interface RenderConfig {
+  widgets: WidgetConfig[],
+  pos: { w: number, h: number } //页面大小，在工作台中位置
+}
+
+export interface WidgetDescription {
+  name: string,
+  version: string,
+  editorConfig: EditorConfig[],
+  config: { [k: string]: any },
+  initPos?: Pos,
+  style?: Partial<CSSProperties>,
+  snapShot?: string,
+  description?: string,
+}
+
+export interface WidgetProps {
+  config: any,
+  pos: Pos,
+  style?: Partial<CSSProperties>
+}
+
+export interface WidgetPackage {
+  FC: ReactComp<WidgetProps>,
+  description: WidgetDescription
+}
+

@@ -1,40 +1,39 @@
-import {
-  FC,
-  RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  Dispatch as SetState
-} from "react";
-import { fromEvent, Subject } from "rxjs";
-import { connect } from 'react-redux'
-import { Dispatch } from "redux"
-import { filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
-import { getFormItem } from "../../render";
-import { ConfigItem } from "../../render/interfaces"
-import { Actions, BaseState } from "../../store/reducer";
-import produce from "immer";
-import { createRefLine, StickFlags } from "../../utils";
+import { FC, Dispatch, RefObject, useCallback, useEffect, useRef, useState, ComponentClass } from "react"
+import { Dispatch as ReduxDispatch } from "redux"
+import type { WidgetConfig, WidgetProps } from "./interfaces"
+import produce from "immer"
+import { fromEvent, Subject } from "rxjs"
+import { tap, map, switchMap, takeUntil, filter } from "rxjs/operators"
+import { StickFlags, createRefLine } from "../utils"
+import { EditorActions } from "../store/editorReducer"
+import { connect } from "react-redux"
+import { BaseState } from "../store"
+import NotFound from "../widgets/not-found"
 
-const { actConfigItem, actSelect } = Actions
+const { actSelectOne, actWidgetConfig } = EditorActions
 
-/**处理移动和缩放功能 */
-const Wrapper: FC<{
-  config: ConfigItem,
-  allConfigs: ConfigItem[],
-  container: RefObject<HTMLElement>,
-  selectedId: number,
-  dispatch: Dispatch,
+interface WrapperProps {
+  selected: boolean,
+  widgetConfig: WidgetConfig,
   idx: number,
-  setRefLines: SetState<[number, number, number][]>
-}> = ({ config, allConfigs, container, dispatch, idx, setRefLines, selectedId }) => {
-  const [layout, setLayout] = useState(config.layout)
-  console.log("render");
+  container: RefObject<HTMLDivElement>,
+  setRefLines: Dispatch<[number, number, number][]>,
+  dispatch: ReduxDispatch,
+  allWidgets: WidgetConfig[],
+  createWidgets: (config: WidgetConfig) => FC<WidgetProps> | ComponentClass<WidgetProps> | null
+}
+
+export const RenderWidget: FC<WrapperProps> = ({
+  selected, idx, container,
+  setRefLines, allWidgets, widgetConfig,
+  dispatch, createWidgets
+}) => {
+  const [layout, setLayout] = useState({ ...widgetConfig.pos })
 
   const setPos = useCallback(({ x, y }: { x: number, y: number }) => {
     setLayout(lay => ({ ...lay, x, y }))
   }, [])
+
   const thisDiv = useRef<HTMLDivElement>(null)
 
   const setReferenceLine = useCallback((
@@ -51,10 +50,10 @@ const Wrapper: FC<{
      * [0, 45, 0] --- 平行于x轴, 坐标 0 45， 宽度100%
      * [1, 45, 0] --- 平行于y轴, 坐标 45 0， 高度100%
      */
-    const otherPositions = allConfigs
+    const otherPositions = allWidgets
       .filter((_, i) => (i !== idx)) //排除掉当前选中的
-      .map((config) => {
-        const { x, y, w, h } = config.layout
+      .map((widget) => {
+        const { x, y, w, h } = widget.pos
         return ({ x, y, w, h })
       })
 
@@ -68,14 +67,14 @@ const Wrapper: FC<{
     const [lines, left, top] = createRefLine(pos, otherPositions, stickTo)
     setRefLines(lines)
     return [left, top]
-  }, [allConfigs, container, idx, setRefLines])
+  }, [allWidgets, container, idx, setRefLines])
 
   useEffect(() => {
     const ele = thisDiv.current!
     const containerOffsetTop = (container.current!.offsetParent as HTMLElement).offsetTop + container.current!.offsetTop
     const containerOffsetLeft = (container.current!.offsetParent as HTMLElement).offsetLeft + container.current!.offsetLeft
 
-    let currLayout: { x: number, y: number, w: number, h: number } = { ...config.layout }
+    let currLayout: { x: number, y: number, w: number, h: number } = { ...widgetConfig.pos }
     /**
      * TIP: 这里我为什么要用一个局部临时变量保存坐标信息？
      * 因为如果直接访问layout的话，根据react的eslint标准会将layout作为
@@ -90,7 +89,7 @@ const Wrapper: FC<{
     const mouseDown$ = fromEvent(ele, "mousedown").pipe(
       tap(e => {
         e.stopPropagation()
-        dispatch(actSelect(idx))
+        dispatch(actSelectOne(idx))
       })
     )
     const mouseMove$ = fromEvent(document, "mousemove")
@@ -156,21 +155,22 @@ const Wrapper: FC<{
         "lb" | "rb" | "mb"
       ) => ({
         dir,
-        _layout: config.layout
+        _layout: widgetConfig.pos
       })),
       switchMap(({ dir, _layout }) => mouseMove$.pipe(
         map((e) => {
           let newX = (e as MouseEvent).pageX - containerOffsetLeft
           let newY = (e as MouseEvent).pageY - containerOffsetTop
 
-          let newHeight = config.layout.h
-          let newWidth = config.layout.w
+          const pos = widgetConfig.pos
+          let newHeight = pos.h
+          let newWidth = pos.w
 
           switch (dir) {
             case "lt": {
               /**当前是点击左上角，应该找右下角坐标 */
-              const rbX = config.layout.x + config.layout.w
-              const rbY = config.layout.y + config.layout.h
+              const rbX = pos.x + pos.w
+              const rbY = pos.y + pos.h
 
               newWidth = rbX - newX
               newHeight = rbY - newY
@@ -178,8 +178,8 @@ const Wrapper: FC<{
             }
             case "lb": {
               /**当前是点击左下角，应该找右上角坐标 */
-              const rtX = config.layout.x + config.layout.w
-              const rtY = config.layout.y
+              const rtX = pos.x + pos.w
+              const rtY = pos.y
 
               newWidth = rtX - newX
               newHeight = newY - rtY
@@ -189,8 +189,8 @@ const Wrapper: FC<{
             }
             case "rb": {
               /**当前点击右下角，找左上角坐标 */
-              const ltX = config.layout.x
-              const ltY = config.layout.y
+              const ltX = pos.x
+              const ltY = pos.y
 
               newWidth = newX - ltX
               newHeight = newY - ltY
@@ -201,8 +201,8 @@ const Wrapper: FC<{
             }
             case "rt": {
               /**当前点击右上角，找左下角坐标 */
-              const lbX = config.layout.x
-              const lbY = config.layout.y + config.layout.h
+              const lbX = pos.x
+              const lbY = pos.y + pos.h
 
               newWidth = newX - lbX
               newHeight = lbY - newY
@@ -212,32 +212,32 @@ const Wrapper: FC<{
             }
             case "lm": {
               /**点击左侧中间小圆点，可以左右移动 */
-              newWidth = config.layout.x + config.layout.w - newX
+              newWidth = pos.x + pos.w - newX
 
-              newY = config.layout.y
+              newY = pos.y
               break
             }
             case "rm": {
               /**点击右侧中间小圆点，可以左右移动 */
-              newWidth = newX - config.layout.x
+              newWidth = newX - pos.x
 
-              newX = config.layout.x
-              newY = config.layout.y
+              newX = pos.x
+              newY = pos.y
               break
             }
             case "mt": {
               /**点击中间上方圆点 */
-              newHeight = config.layout.h + config.layout.y - newY
+              newHeight = pos.h + pos.y - newY
 
-              newX = config.layout.x
+              newX = pos.x
               break
             }
             case "mb": {
               /**点击中间下方圆点 */
-              newHeight = newY - config.layout.y
+              newHeight = newY - pos.y
 
-              newX = config.layout.x
-              newY = config.layout.y
+              newX = pos.x
+              newY = pos.y
               break
             }
             default: return _layout
@@ -334,10 +334,10 @@ const Wrapper: FC<{
     const dispatchPosChange = (pos: {
       x?: number, y?: number, w?: number, h?: number
     }) => {
-      dispatch(actConfigItem(produce(config, it => {
+      dispatch(actWidgetConfig(produce(widgetConfig, it => {
         Reflect.ownKeys(pos).forEach(k => {
           /**@ts-ignore */
-          it.layout[k] = pos[k]
+          it.pos[k] = pos[k]
         })
       })))
     }
@@ -397,7 +397,7 @@ const Wrapper: FC<{
       dotMT.removeEventListener("mousedown", resizeMT)
       dotMB.removeEventListener("mousedown", resizeMB)
     }
-  }, [config, container, dispatch, idx, setPos, setRefLines, setReferenceLine])
+  }, [container, dispatch, idx, setPos, setRefLines, setReferenceLine, widgetConfig])
 
   /**LT代表left top，左上角的div，其它同理 */
   const dLT = useRef<HTMLDivElement>(null)
@@ -411,31 +411,29 @@ const Wrapper: FC<{
 
   /**监听config改变并且重新赋值给layout */
   useEffect(() => {
-    setLayout(config.layout)
-  }, [config])
+    setLayout(widgetConfig.pos)
+  }, [widgetConfig.pos])
+
+  const WidgetComponent = createWidgets(widgetConfig) || NotFound.FC
 
   return (
     <div
-      className={ `absolute wrap-widget ${idx === selectedId ? "select" : ""}` }
+      className={ `absolute wrap-widget ${selected ? "select" : ""}` }
       ref={ thisDiv }
       style={ {
         left: layout.x + "px",
         top: layout.y + "px",
         width: layout.w + "px",
         height: layout.h + "px",
-        zIndex: config.layout.zIndex,
+        zIndex: 0,
       } }
       title={ `x:${layout.x} y:${layout.y} w:${layout.w} h:${layout.h}` }
     >
-      {
-        /**让组件的宽高用layout的 */
-        getFormItem(produce(config, it => {
-          it.layout.w = layout.w
-          it.layout.h = layout.h
-          it.layout.x = layout.x
-          it.layout.y = layout.y
-        }))
-      }
+      <WidgetComponent
+        config={ widgetConfig.config }
+        pos={ layout }
+        style={ widgetConfig.style }
+      />
       <div className="move-dot lt" ref={ dLT }></div>
       <div className="move-dot mt" ref={ dMT }></div>
       <div className="move-dot rt" ref={ dRT }></div>
@@ -449,9 +447,11 @@ const Wrapper: FC<{
 }
 
 export default connect(
-  (state: BaseState) => ({
-    allConfigs: state.mainConfig.components,
-    selectedId: state.selectedIndex
-  }),
+  (state: BaseState) => {
+    const workplace = state.editorReducer.workplace
+    return {
+      allWidgets: workplace.renderConfig.widgets
+    }
+  },
   dispatch => ({ dispatch })
-)(Wrapper)
+)(RenderWidget)

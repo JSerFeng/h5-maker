@@ -1,25 +1,21 @@
-.dev-view {
+.work-bg {
   width: 60%;
+  overflow: hidden;
   flex-shrink: 0;
-  height: 100%;
+  height: 100vh;
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
   user-select: none;
   background-color: rgb(245, 245, 245);
+  cursor: move;
 
   .display-view {
+    cursor: pointer;
     width: 100%;
     height: 100%;
     background-color: #fff;
     box-shadow: 0 0 20px rgb(219, 219, 219);
-  }
-
-  .demo {
-    height: 50px;
-    width: 100%;
-    background-color: ghostwhite;
-    margin: 10px;
   }
 
   .nextPos {
@@ -50,12 +46,6 @@
     cursor: pointer;
     width: fit-content;
     box-sizing: border-box;
-
-    .form-item {
-      width: 100%;
-      height: 100%;
-      margin: 0 !important;
-    }
 
     &::after {
       content: "";
