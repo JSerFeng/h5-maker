@@ -1,11 +1,14 @@
 import "./App.css"
-import { BrowserRouter } from "react-router-dom"
-import Router from "./router"
+import { BrowserRouter, Route } from "react-router-dom"
+import WorkPlace from "./pages/work-place"
+import widgetsCenter from "./widgets"
 
 function App() {
   return <div>
     <BrowserRouter>
-      <Router />
+      <Route>
+        <WorkPlace widgetsCenter={ widgetsCenter } />
+      </Route>
     </BrowserRouter>
   </div>
 }

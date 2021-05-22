@@ -18,6 +18,7 @@ export interface BaseState {
       x: number,
       y: number,
       scale: number //缩放
+      centerPosition: { x: number, y: number }
     },
     undoStack: BaseState[],
     redoStack: BaseState[]
@@ -36,6 +37,8 @@ export enum Types {
   ChangeWorkingPos = "ChangeWorkingPos",
   Undo = "Undo",
   Redo = "Redo",
+  MoveCanvasToCenter = "MoveCanvasToCenter",
+  SetInitCanvasPos = "SetInitCanvasPos"
 }
 
 const AC = <T extends Types, P = null>(type: T, payload: P): { type: T, payload: P } => ({ type, payload })
@@ -53,6 +56,8 @@ export const EditorActions = {
   actChangeWorkingPos: (pos: { x: number, y: number, scale: number }) => AC(Types.ChangeWorkingPos, pos),
   actUndo: () => AC(Types.Undo, null),
   actRedo: () => AC(Types.Redo, null),
+  actMoveCanvasToCenter: () => AC(Types.MoveCanvasToCenter, null),
+  actSetInitCanvasPos: (pos: { x: number, y: number }) => AC(Types.SetInitCanvasPos, pos)
 }
 
 export type GetActionTypes<A extends { [k: string]: (...args: any[]) => { type: Types, payload: any } }> = { [K in keyof A]: ReturnType<A[K]> }[keyof A]
@@ -70,10 +75,11 @@ const defaultBaseEditorState: BaseState = {
     canvas: {
       x: 0,
       y: 0,
-      scale: 1
+      scale: 1,
+      centerPosition: { x: 0, y: 0 }
     },
     undoStack: [],
-    redoStack: []
+    redoStack: [],
   }
 }
 
@@ -140,6 +146,7 @@ const reducer: Reducer<BaseState, GetActionTypes<typeof EditorActions>> = (state
       }
       case Types.ResetDraw: {
         state.workplace.selectedIndex = null
+        state.workplace.renderConfig.widgets.length = 0
         state.workplace.renderConfig.widgets = []
         break
       }
@@ -148,6 +155,16 @@ const reducer: Reducer<BaseState, GetActionTypes<typeof EditorActions>> = (state
         state.workplace.canvas.x = x
         state.workplace.canvas.y = y
         state.workplace.canvas.scale = scale
+        break
+      }
+      case Types.SetInitCanvasPos: {
+        state.workplace.canvas.centerPosition = action.payload
+        break
+      }
+      case Types.MoveCanvasToCenter: {
+        const { centerPosition: { x, y } } = state.workplace.canvas
+        state.workplace.canvas.x = x
+        state.workplace.canvas.y = y
         break
       }
     }
@@ -186,9 +203,12 @@ const reducer: Reducer<BaseState, GetActionTypes<typeof EditorActions>> = (state
         return newState
       }
     }
+    default: {
+      return produce(newState, it => {
+        it.workplace.undoStack.push(newState)
+      })
+    }
   }
-
-  return newState
 }
 
 export default reducer

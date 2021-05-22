@@ -135,6 +135,10 @@ export const createRefLine = (
   return [lines, l, t]
 }
 
+export const isUndef = (target: unknown): target is undefined | null => {
+  return target === undefined || target === null
+}
+
 
 const { confirm } = Modal;
 

@@ -59,12 +59,12 @@
     }
 
     &:hover::after {
-      border: 1px solid rgb(146, 177, 212);
+      border: 1px solid rgb(88, 106, 126);
     }
 
     &.select::after {
-      background-color: rgb(146, 177, 212);
       opacity: .5;
+      border: 1px solid rgb(88, 106, 126);
     }
 
     &.select {

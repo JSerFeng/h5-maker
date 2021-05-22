@@ -1,71 +1,128 @@
 import produce from "immer";
-import { Dispatch, FC, memo } from "react";
+import { FC, memo, useRef } from "react";
 import { Dispatch as ReduxDispatch } from "redux"
-import { EditorTypes, WidgetConfig } from "../../../render/interfaces";
+import {
+  EditorConfig,
+  EditorTypes,
+  ReactComp,
+  WidgetConfig,
+  WidgetConfigProp
+} from "../../../render/interfaces";
 import { EditorActions } from "../../../store/editorReducer";
-import { SketchPicker } from "react-color"
-
-import { Row, Col, Input, InputNumber } from "antd"
+import { ChromePicker } from "react-color"
+import {
+  Button,
+  TextField,
+  RadioGroup,
+  FormControlLabel,
+  Radio
+} from "@material-ui/core";
 
 const { actWidgetConfig } = EditorActions
 
 const SingleConfig: FC<{
-  widgetConfig: WidgetConfig,
-  dispatch: ReduxDispatch
-}> = ({ widgetConfig, dispatch }) => {
+  widgetConfig: WidgetConfig<EditorConfig[]>,
+  dispatch: ReduxDispatch,
+  CustomConfig?: ReactComp<WidgetConfigProp> | null
+}> = ({ widgetConfig, dispatch, CustomConfig }) => {
+  const defaultConfig = useRef(widgetConfig.config)
+
+  if (widgetConfig.editorConfig === null ||
+    widgetConfig.config === null
+  ) {
+    return <div>无可配置选项</div>
+  }
+
   const dispatchProperty = (key: string, value: any) => {
     dispatch(actWidgetConfig(produce(widgetConfig, it => {
       it.config[key] = value
     })))
   }
+
   return (
     <div>
       {
         widgetConfig.editorConfig.length === 0
           ? <div>组件没有可配置项</div>
-          : widgetConfig.editorConfig.map(({ name, key, type }, i) => (
-            <div key={ i }>
-              <Configuration
-                name={ name }
-                type={ type }
-                value={ widgetConfig.config[key] }
-                setProperty={ dispatchProperty.bind(null, key) }
-              />
+          : <div>
+            <div>
+              层级
+              <TextField placeholder="层级" value={ widgetConfig.style?.zIndex || 0 } />
             </div>
-          ))
+            {
+              widgetConfig.editorConfig.map((editorConfig, i) => {
+                const { name, key } = editorConfig
+                return <div key={ key }>
+                  <div>
+                    { name }
+                  </div>
+                  <div>
+                    { getConfig(editorConfig, widgetConfig.config[key], dispatchProperty.bind(null, key)) }
+                  </div>
+                </div>
+              })
+            }
+            {
+              CustomConfig && <CustomConfig
+                widgetConfig={ widgetConfig }
+                dispatchConfig={ newWidgetConfig => {
+                  dispatch(actWidgetConfig(newWidgetConfig))
+                } }
+              />
+            }
+            <Button
+              onClick={
+                () => {
+                  dispatch(actWidgetConfig(produce(widgetConfig, it => {
+                    it.config = defaultConfig.current
+                  })))
+                }
+              }
+              color="secondary"
+              variant="contained"
+            >重置</Button>
+          </div>
       }
     </div>
   )
 }
 
-const Configuration: FC<{
-  setProperty: Dispatch<any>,
-  name: string,
-  type: EditorTypes,
-  value: any
-}> = ({ setProperty, name, type, value }) => {
-
-  return (
-    <Row>
-      <Col span={ 12 }>{ name }</Col>
-      { getConfig(type, value, setProperty) }
-    </Row>
-  )
-}
-
-
-const getConfig = (type: EditorTypes, value: any, setProperty: Dispatch<any>) => {
-  switch (type) {
+function getConfig<T extends EditorTypes>(
+  config: EditorConfig<T>,
+  value: any,
+  setProperty: (val: any) => void
+) {
+  switch (config.type) {
     case EditorTypes.Color:
-      return <SketchPicker color={ value } onChange={ color => {
+      return <ChromePicker color={ value } onChange={ color => {
         setProperty(color.hex)
       } } />
     case EditorTypes.Text:
-      return <Input value={ value } onChange={ e => {
+      return <TextField value={ value } onChange={ e => {
         setProperty(e.target.value)
       } } />
     case EditorTypes.Number:
-      return <InputNumber value={ value } onChange={ setProperty } />
+      return <TextField value={ value } onChange={ e => {
+        setProperty(e.target.value)
+      } } />
+    case EditorTypes.Select:
+      return <div>
+        <RadioGroup
+          value={ value }
+          onChange={ e => { setProperty(e.target.value) } }
+        >
+          {
+            (config as EditorConfig<EditorTypes.Select>).options.map(({ label, value }) => (
+              <FormControlLabel
+                key={ value }
+                control={ <Radio /> }
+                label={ label }
+                value={ value }
+              />
+            ))
+          }
+        </RadioGroup>
+      </div>
     default: return null
   }
 }

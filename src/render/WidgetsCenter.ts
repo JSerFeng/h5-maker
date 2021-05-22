@@ -1,4 +1,4 @@
-import { WidgetConfig, WidgetDescription, WidgetPackage } from "./interfaces"
+import { EditorConfig, ReactComp, WidgetConfig, WidgetDescription, WidgetPackage, WidgetProps } from "./interfaces"
 
 type WidgetsMap = Map<string, WidgetPackage>
 
@@ -20,8 +20,8 @@ class WidgetsCenter {
   }
 
   use(widget: WidgetPackage) {
-    const { description, FC } = widget
-    this.widgetsMap.set(description.name, { FC, description })
+    const { description, FC, Configuration } = widget
+    this.widgetsMap.set(description.name, { FC, description, Configuration })
     this.notify()
   }
 
@@ -34,7 +34,7 @@ class WidgetsCenter {
     this.subQueue.push(cb)
   }
 
-  get(widgetConfig: WidgetConfig | WidgetConfig | string) {
+  get(widgetConfig: WidgetConfig<EditorConfig[] | null> | string) {
     let name: string
     if (typeof widgetConfig === "string") {
       name = widgetConfig
@@ -52,15 +52,25 @@ class WidgetsCenter {
     return widgets
   }
 
-  create(widgetName: string): WidgetConfig | null {
+  create(widgetName: string): WidgetConfig<EditorConfig[] | null> | null {
     const widget = this.widgetsMap.get(widgetName)
     if (!widget) return null
     const { name, editorConfig, config, initPos } = widget.description
 
     return {
-      name, editorConfig, config, pos: initPos || { x: 10, y: 10, w: 60, h: 60 }
+      name,
+      editorConfig,
+      config,
+      pos: initPos || { x: 10, y: 10, w: 60, h: 60 }
     }
   }
 }
 
 export default WidgetsCenter
+
+export const createPkg = <T extends WidgetProps>(Comp: ReactComp<T>, options: WidgetDescription): WidgetPackage => {
+  return {
+    FC: Comp as ReactComp<WidgetProps>,
+    description: options
+  }
+}

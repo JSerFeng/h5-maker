@@ -1,16 +1,16 @@
-import { FC, useEffect, useState } from "react";
-import { connect } from "react-redux";
+import { FC, memo, useEffect, useState } from "react";
 import Render from "../../render";
-import widgetsCenter from "../../widgets";
-import { BaseState } from "../../store";
 import Operators from "./operators";
 import WidgetsList from "./WidgetsList";
+import { WidgetConfig } from "../../render/interfaces";
+import WidgetsCenter from "../../render/WidgetsCenter";
 
 import "./style.scss"
-import { WidgetConfig, WidgetPackage } from "../../render/interfaces";
 
-const WorkPlace: FC = () => {
-  const [allWidgetPkges, setAllWidgetPkges] = useState<WidgetPackage[]>(widgetsCenter.getAll())
+const WorkPlace: FC<{
+  widgetsCenter: WidgetsCenter
+}> = ({ widgetsCenter }) => {
+  const [allWidgetPkges, setAllWidgetPkges] = useState(widgetsCenter.getAll())
   const createWidgets = (config: WidgetConfig) => {
     const widgetDescription = widgetsCenter.get(config)
     return widgetDescription?.FC || null
@@ -19,8 +19,7 @@ const WorkPlace: FC = () => {
     widgetsCenter.subscribe(all => {
       setAllWidgetPkges(all)
     })
-  }, [])
-
+  }, [widgetsCenter])
 
   return (
     <div className="flex jb" style={ { height: "100vh" } }>
@@ -31,7 +30,5 @@ const WorkPlace: FC = () => {
   )
 }
 
-export default connect(
-  (state: BaseState) => ({})
-)(WorkPlace)
+export default memo(WorkPlace)
 

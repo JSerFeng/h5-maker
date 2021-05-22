@@ -1,44 +1,15 @@
-import { FC } from "react"
-import { EditorTypes, Pos, WidgetPackage } from "../../render/interfaces"
+import { EditorTypes, WidgetPackage } from "../../render/interfaces"
+import Text, { TextConfig } from "./Text"
 
-interface TextProps {
-  config: {
-    fontSize: number,
-    color: string,
-    padding: number,
-    content: string,
-  },
-  pos: Pos
-}
-
-const Text: FC<TextProps> = (props) => {
-  const { fontSize, color, padding, content } = props.config
-  const { w, h } = props.pos
-
-  return <div style={ {
-    fontSize, color,
-    padding: padding + "px",
-    width: w,
-    height: h,
-    display: "flex",
-    alignItems: "center"
-  } }>
-    <div> { content }</div>
-  </div>
-}
 
 const widgetPkg: WidgetPackage = {
   FC: Text,
+  Configuration: TextConfig,
   description: {
     name: "text",
     version: "0.0.1",
     description: "基础文本控件",
     editorConfig: [
-      {
-        key: "onClick",
-        name: "点击后的回调",
-        type: EditorTypes.Text
-      },
       {
         key: "fontSize",
         name: "字体大小",
@@ -55,6 +26,28 @@ const widgetPkg: WidgetPackage = {
         key: "content",
         name: "内容",
         type: EditorTypes.Text
+      }, {
+        key: "backgroundColor",
+        name: "背景颜色",
+        type: EditorTypes.Color
+      }, {
+        key: "justifyContent",
+        name: "水平布局",
+        type: EditorTypes.Select,
+        options: [
+          { label: "靠左", value: "flex-start" },
+          { label: "居中", value: "center" },
+          { label: "靠右", value: "flex-end" },
+        ]
+      }, {
+        key:"alignItems",
+        name: "垂直布局",
+        type: EditorTypes.Select,
+        options: [
+          { label: "靠上", value: "flex-start" },
+          { label: "居中", value: "center" },
+          { label: "靠下", value: "flex-end" },
+        ]
       }
     ],
     config: {
@@ -62,7 +55,9 @@ const widgetPkg: WidgetPackage = {
       color: "black",
       padding: 15,
       content: "文本框",
-      onClick: "console"
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#fff"
     }
   }
 }

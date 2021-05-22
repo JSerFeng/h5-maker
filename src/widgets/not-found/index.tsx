@@ -1,9 +1,7 @@
 import { FC } from "react";
 import { WidgetPackage } from "../../render/interfaces";
 
-interface Props {
-  
-}
+interface Props { }
 
 const NotFound: FC<Props> = () => {
   return <div>组件未找到</div>
