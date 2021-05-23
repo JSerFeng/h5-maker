@@ -1,6 +1,20 @@
-import { createStore } from "redux";
-import reducer from './reducer'
+import { combineReducers, createStore } from "redux";
+import editorReducer from './editorReducer'
+import { composeWithDevTools } from 'redux-devtools-extension'
 
-const store = createStore(reducer)
+const reducersMap = {
+  editorReducer
+}
+
+type GetBaseState<T extends { [k: string]: (...args: any) => any }> = {
+  [K in keyof T]: ReturnType<T[K]>
+}
+
+export type BaseState = GetBaseState<typeof reducersMap>
+
+const store = createStore(
+  combineReducers(reducersMap),
+  composeWithDevTools()
+)
 
 export { store }

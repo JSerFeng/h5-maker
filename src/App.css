@@ -8,6 +8,14 @@ ul {
   margin: 0;
 }
 
+.hidden {
+  display: none;
+}
+
+.cursor {
+  cursor: default;
+}
+
 .flex {
   display: flex;
 }

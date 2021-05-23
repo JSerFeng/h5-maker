@@ -135,6 +135,10 @@ export const createRefLine = (
   return [lines, l, t]
 }
 
+export const isUndef = (target: unknown): target is undefined | null => {
+  return target === undefined || target === null
+}
+
 
 const { confirm } = Modal;
 
@@ -145,4 +149,8 @@ export function withConfirm(message: string, cb: () => void) {
     okText: "确认",
     cancelText: "取消"
   })
+}
+
+export function deepCopy<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
 }

@@ -1,5 +1,6 @@
-.dev-view {
+.work-bg {
   width: 60%;
+  overflow: hidden;
   flex-shrink: 0;
   height: 100%;
   position: relative;
@@ -7,19 +8,34 @@
   overflow-x: hidden;
   user-select: none;
   background-color: rgb(245, 245, 245);
+  cursor: move;
 
   .display-view {
+    cursor: pointer;
     width: 100%;
     height: 100%;
     background-color: #fff;
     box-shadow: 0 0 20px rgb(219, 219, 219);
   }
 
-  .demo {
-    height: 50px;
+  .drag-mask {
     width: 100%;
-    background-color: ghostwhite;
-    margin: 10px;
+    height: 100%;
+    background-color: rgb(255, 255, 255);
+    opacity: 0.5;
+  }
+
+  .select-mask {
+    width: 100%;
+    height: 100%;
+    background-color: rgb(255, 255, 255);
+    opacity: 0.5;
+  }
+
+  .selected-area {
+    background-color: rgb(197, 197, 197);
+    cursor: move;
+    opacity: .5;
   }
 
   .nextPos {
@@ -29,12 +45,14 @@
     background-color: rgb(212, 245, 255);
   }
 
+  --ref-line-color: rgb(150, 222, 255);
+
   .ref-line-col {
     position: absolute;
     width: 1px;
     height: 100%;
     top: 0;
-    background-color: blue;
+    background-color: var(--ref-line-color);
   }
 
   .ref-line-row {
@@ -42,7 +60,7 @@
     width: 100%;
     height: 1px;
     left: 0;
-    background-color: blue;
+    background-color: var(--ref-line-color);
   }
 
   .wrap-widget {
@@ -50,12 +68,6 @@
     cursor: pointer;
     width: fit-content;
     box-sizing: border-box;
-
-    .form-item {
-      width: 100%;
-      height: 100%;
-      margin: 0 !important;
-    }
 
     &::after {
       content: "";
@@ -69,12 +81,12 @@
     }
 
     &:hover::after {
-      border: 1px solid rgb(146, 177, 212);
+      border: 1px solid rgb(88, 106, 126);
     }
 
     &.select::after {
-      background-color: rgb(146, 177, 212);
       opacity: .5;
+      border: 1px solid rgb(88, 106, 126);
     }
 
     &.select {

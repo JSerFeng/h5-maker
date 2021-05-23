@@ -1,15 +1,15 @@
-import View from './components/view'
 import "./App.css"
-import Widgets from './components/widgets';
-import Operators from './components/operators';
+import { BrowserRouter, Route } from "react-router-dom"
+import WorkPlace from "./pages/work-place"
+import widgetsCenter from "./widgets"
 
 function App() {
   return <div>
-    <div className="flex jb" style={ { height: "100vh" } }>
-      <Widgets />
-      <View />
-      <Operators />
-    </div>
+    <BrowserRouter>
+      <Route>
+        <WorkPlace widgetsCenter={ widgetsCenter } />
+      </Route>
+    </BrowserRouter>
   </div>
 }
 
