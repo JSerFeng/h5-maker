@@ -11,7 +11,6 @@ import {
   switchMap,
   takeUntil,
   map,
-  throttleTime
 } from 'rxjs/operators';
 import { EditorActions, Tools } from '../store/editorReducer';
 import { WidgetConfig, WidgetProps } from './interfaces';
@@ -19,6 +18,20 @@ import produce from 'immer';
 
 import "./style.scss"
 import EventEmitter from '../utils/eventEmitter';
+import WidgetsCenter from './WidgetsCenter';
+import { getOffsetLeft, getOffsetTop } from '../utils';
+
+
+/**
+ * 
+ * 
+ * 6,5,3,2,4,1
+ * [6]
+ * [6]
+ * 
+ * 
+ */
+
 
 const {
   actSelect,
@@ -29,7 +42,8 @@ const {
   actRedo,
   actChangeWidgetPos,
   actStartWidgetPos,
-  actCommitChangeWidgetPos
+  actCommitChangeWidgetPos,
+  actAddItem
 } = EditorActions
 
 const mouseMove$ = fromEvent(document, "mousemove")
@@ -63,12 +77,13 @@ const initStyle = {
 const Renderer: FC<{
   workplace: BaseState["editorReducer"]["workplace"],
   dispatch: Dispatch,
-  createWidgets: (config: WidgetConfig) => FC<WidgetProps> | ComponentClass<WidgetProps> | null,
+  createWidgets: (config: WidgetConfig | string) => FC<WidgetProps> | ComponentClass<WidgetProps> | null,
+  widgetsCenter: WidgetsCenter,
   eventPool: EventEmitter
 }> = (props) => {
   const container = useRef<HTMLDivElement>(null)
   const bgRef = useRef<HTMLDivElement>(null)
-  const { workplace, dispatch, createWidgets, eventPool } = props
+  const { workplace, dispatch, createWidgets, eventPool, widgetsCenter } = props
   const { canvas, renderConfig } = workplace
   const { pos, widgets } = renderConfig
   const { w, h } = pos
@@ -135,12 +150,16 @@ const Renderer: FC<{
     setCanvasPos(initPos)
   }, [dispatch, h, w])
 
-  /**处理背景移动，删除，拷贝，多选 */
+  /**处理背景缩放，移动，删除，拷贝，多选 */
   useEffect(() => {
     const currCanvasPos = { ...canvas }
 
     const _container = container.current!
-    const bgMouseDown$ = fromEvent(bgRef.current!, "mousedown")
+    const bgMouseDown$ = fromEvent(bgRef.current!, "mousedown").pipe(
+      tap(() => {
+        setSelectArea({ x: 0, y: 0, w: 0, h: 0 })
+      })
+    )
     const multiSelectStart$ = fromEvent(multiSelectRef.current!, "mousedown").pipe(
       tap(e => { e.stopPropagation() })
     )
@@ -223,8 +242,8 @@ const Renderer: FC<{
 
         const initX = (e as MouseEvent).pageX
         const initY = (e as MouseEvent).pageY
-        const containerOffsetLeft = container.current!.offsetLeft + bgRef.current!.offsetLeft
-        const containerOffsetTop = container.current!.offsetTop + bgRef.current!.offsetTop
+        const containerOffsetLeft = getOffsetLeft(container.current!)
+        const containerOffsetTop = getOffsetTop(container.current!)
 
         return mouseMove$.pipe(
           map(e => {
@@ -320,7 +339,6 @@ const Renderer: FC<{
           ))
         )
       }),
-      throttleTime(12)
     ).subscribe(({ deltaX, deltaY }) => {
       if (workplace.selectedIndex) {
         dispatch(actChangeWidgetPos(deltaX, deltaY))
@@ -345,6 +363,19 @@ const Renderer: FC<{
     <div className="work-bg relative" ref={ bgRef }>
       <div
         ref={ container }
+        onDragOver={ e => { e.preventDefault() } }
+        onDrop={ e => {
+          const name = e.dataTransfer.getData("name")
+          if (name) {
+            const config = widgetsCenter.create(name)
+            if (config) {
+              config.pos = config.pos || { x: 0, y: 0, w: 80, z: 80 }
+              config.pos.x = e.pageX - getOffsetLeft(container.current) - config.pos.w / 2
+              config.pos.y = e.pageY - getOffsetTop(container.current) - config.pos.h / 2
+              dispatch(actAddItem(config))
+            }
+          }
+        } }
         className="display-view absolute"
         style={ canvasPos.centerPosition.x ? {
           width: w + "px",
@@ -398,7 +429,8 @@ const Renderer: FC<{
           className={
             workplace.selectedTool === Tools.Select ? "absolute select-mask cursor" : "hidden"
           }
-          ref={ multiSelectRef }>
+          ref={ multiSelectRef }
+        >
         </div>
         <div
           ref={ selectedRef }
@@ -411,9 +443,15 @@ const Renderer: FC<{
           } }
         >
         </div>
-        <div className={
-          workplace.selectedTool === Tools.Drag ? "absolute drag-mask cursor" : "hidden"
-        }></div>
+      </div>
+      <div
+        className={
+          workplace.selectedTool === Tools.Drag ? "absolute drag-mask" : "hidden"
+        }
+        style={ {
+          cursor: "move"
+        } }
+      >
       </div>
     </div >
   )

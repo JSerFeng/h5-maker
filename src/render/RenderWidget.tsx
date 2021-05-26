@@ -1,10 +1,10 @@
-import { FC, Dispatch, RefObject, useCallback, useEffect, useRef, useState, ComponentClass } from "react"
+import { FC, Dispatch, RefObject, useCallback, useEffect, useRef, useState, ComponentClass, useMemo } from "react"
 import { Dispatch as ReduxDispatch } from "redux"
 import type { WidgetConfig, WidgetProps } from "./interfaces"
 import produce from "immer"
 import { fromEvent, Subject } from "rxjs"
 import { tap, map, switchMap, takeUntil, filter } from "rxjs/operators"
-import { StickFlags, createRefLine } from "../utils"
+import { StickFlags, createRefLine, getOffsetLeft, getOffsetTop } from "../utils"
 import { EditorActions } from "../store/editorReducer"
 import { connect } from "react-redux"
 import { BaseState } from "../store"
@@ -36,6 +36,11 @@ export const RenderWidget: FC<WrapperProps> = ({
     setLayout(lay => ({ ...lay, x, y }))
   }, [])
 
+  const containerLeft = useMemo(() => getOffsetLeft(container.current), [container])
+  const containerTop = useMemo(() => getOffsetTop(container.current), [container])
+  const containerHeight = useMemo(() => container.current && (container.current as HTMLDivElement).offsetHeight, [container])
+  const containerWidth = useMemo(() => container.current && (container.current as HTMLDivElement).offsetWidth, [container])
+
   const thisDiv = useRef<HTMLDivElement>(null)
 
   const setReferenceLine = useCallback((
@@ -62,19 +67,20 @@ export const RenderWidget: FC<WrapperProps> = ({
     otherPositions.push({
       x: 0,
       y: 0,
-      w: container.current!.offsetWidth,
-      h: container.current!.offsetHeight
+      w: containerWidth || container.current!.offsetWidth,
+      h: containerHeight || container.current!.offsetHeight
     })
 
     const [lines, left, top] = createRefLine(pos, otherPositions, stickTo)
     setRefLines(lines)
     return [left, top]
-  }, [allWidgets, container, idx, setRefLines])
+  }, [allWidgets, container, containerHeight, containerWidth, idx, setRefLines])
 
   useEffect(() => {
     const ele = thisDiv.current!
-    const containerOffsetTop = (container.current!.offsetParent as HTMLElement).offsetTop + container.current!.offsetTop
-    const containerOffsetLeft = (container.current!.offsetParent as HTMLElement).offsetLeft + container.current!.offsetLeft
+    
+    const containerOffsetTop = containerTop || getOffsetLeft(container.current!)
+    const containerOffsetLeft = containerLeft || getOffsetTop(container.current!)
 
     let currLayout: { x: number, y: number, w: number, h: number } = { ...widgetConfig.pos }
     /**
@@ -399,7 +405,7 @@ export const RenderWidget: FC<WrapperProps> = ({
       dotMT.removeEventListener("mousedown", resizeMT)
       dotMB.removeEventListener("mousedown", resizeMB)
     }
-  }, [container, dispatch, idx, setPos, setRefLines, setReferenceLine, widgetConfig])
+  }, [container, containerLeft, containerTop, dispatch, idx, setPos, setRefLines, setReferenceLine, widgetConfig])
 
   /**LT代表left top，左上角的div，其它同理 */
   const dLT = useRef<HTMLDivElement>(null)

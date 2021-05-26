@@ -11,6 +11,7 @@ const widgetPackage: WidgetPackage = {
   FC: NotFound,
   description: {
     name: "not-found",
+    showName: "404",
     version: "0.0.1",
     editorConfig: [],
     config: {}

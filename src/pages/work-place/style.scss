@@ -1,35 +1,41 @@
-.operators {
+.operators-list {
   width: 20%;
-  overflow: auto;
-  height: 100%;
-  padding: 15px;
-  box-sizing: border-box;
-  background-color: rgb(255, 255, 255);
+  
+  .operators {
+    width: 100%;
+    overflow: auto;
+    height: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: rgb(255, 255, 255);
 
-  .config-list {
-    li {
-      .change-z-index {
-        background-color: #fff;
+    .config-list {
+      li {
+        .change-z-index {
+          background-color: #fff;
 
-        span {
-          width: 25px;
-          height: fit-content;
-          display: inline-block;
-          text-align: center;
-          background-color: rgb(140, 162, 211);
-          margin: 5px;
+          span {
+            width: 25px;
+            height: fit-content;
+            display: inline-block;
+            text-align: center;
+            background-color: rgb(140, 162, 211);
+            margin: 5px;
 
-          &:hover {
-            background-color: rgb(84, 124, 209);
+            &:hover {
+              background-color: rgb(84, 124, 209);
+            }
+
+            color: #fff;
+            border-radius: 5px;
           }
-
-          color: #fff;
-          border-radius: 5px;
         }
       }
     }
   }
+
 }
+
 
 .widgets {
   width: 20%;
@@ -38,11 +44,20 @@
   background-color: rgb(255, 255, 255);
 
   .widgets-list {
+    flex-wrap: wrap;
+
     .widgets-list-item {
       width: 100%;
-      height: 100px;
+      max-width: 100px;
+      box-sizing: border-box;
+      padding: 10px;
       transition: .2s;
       cursor: pointer;
+
+      .sm-pic {
+        background-color: rgb(197, 255, 255);
+        max-width: 100%;
+      }
 
       &:hover {
         background-color: rgb(231, 231, 231);

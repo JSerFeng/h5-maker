@@ -26,14 +26,26 @@ const WidgetsList: FC<{
   }
   return (
     <div className="widgets">
-      <div className="widgets-list">
-        <div>组件列表</div>
+      <div>
+        组件列表
+      </div>
+      <div className="widgets-list flex jb">
+
         {
-          allWidgets.map(({ description }, i) => (
-            <Tooltip key={ i } title={ description.description } color="blue">
-              <div className="widgets-list-item" onClick={ addWidget.bind(null, description.name) }>
-                <img src={ description.snapShot } alt={ description.name } />
-                <div>{ description.name }</div>
+          allWidgets.map(({ description, FC }, i) => (
+            <Tooltip key={ i } title={ description.description || description.showName } color="blue" placement="right">
+              <div
+                className="widgets-list-item" onClick={ addWidget.bind(null, description.name) }
+                onDragStart={ e => {
+                  e.dataTransfer.setData("name", description.name)
+                } }
+                draggable
+              >
+                {
+                  description.snapShot && <img className="sm-pic" src={ description.snapShot } alt={ description.name } />
+                }
+                <div>{ description.showName }</div>
+                <FC { ...description } pos={ { x: 0, y: 0, w: 80, h: 80 } } />
               </div>
             </Tooltip>
           ))

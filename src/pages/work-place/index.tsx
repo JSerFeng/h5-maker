@@ -15,7 +15,15 @@ const WorkPlace: FC<{
   widgetsCenter: WidgetsCenter
 }> = ({ widgetsCenter }) => {
   const [allWidgetPkges, setAllWidgetPkges] = useState(widgetsCenter.getAll())
-  const createWidgets = (config: WidgetConfig) => {
+  const createWidgets = (config: WidgetConfig | string) => {
+    if (typeof config === "string") {
+      const pkg = widgetsCenter.get(config)
+      if (pkg) {
+        return pkg.FC
+      } else {
+        return null
+      }
+    }
     const widgetDescription = widgetsCenter.get(config)
     return widgetDescription?.FC || null
   }
@@ -30,7 +38,7 @@ const WorkPlace: FC<{
       <HeaderConfig />
       <div className="flex jb" style={ { height: "90vh" } }>
         <WidgetsList allWidgets={ allWidgetPkges } widgetsCenter={ widgetsCenter } />
-        <Render eventPool={ eventPool } createWidgets={ createWidgets } />
+        <Render widgetsCenter={ widgetsCenter } eventPool={ eventPool } createWidgets={ createWidgets } />
         <Operators widgetsCenter={ widgetsCenter } />
       </div>
     </div>

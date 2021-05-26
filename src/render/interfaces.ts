@@ -33,32 +33,33 @@ export interface Pos {
   x: number, y: number, w: number, h: number
 }
 
-export interface WidgetConfig<T extends EditorConfig[] | null = EditorConfig[] | null> {
+export interface WidgetConfig {
   name: string,
-  editorConfig: T,
-  config: TransformConfig<T>,
+  editorConfig: EditorConfig[],
+  config: Record<string, any>,
   pos: Pos, //位置信息
   style?: Partial<CSSProperties>, //样式信息
 }
 
 export interface RenderConfig {
-  widgets: WidgetConfig<EditorConfig[] | null>[],
+  widgets: WidgetConfig[],
   pos: { w: number, h: number } //页面大小，在工作台中位置
 }
 
 export interface WidgetDescription {
   name: string,
-  version: string,
+  version?: string,
+  showName: string,
   editorConfig: EditorConfig[],
-  config: {},
+  config: Record<string, any>,
   initPos?: Pos,
   style?: Partial<CSSProperties>,
   snapShot?: string,
   description?: string,
 }
 
-export interface WidgetProps {
-  config: any,
+export interface WidgetProps<T = any> {
+  config: T,
   pos: Pos,
   style?: Partial<CSSProperties>,
   eventPool?: EventEmitter

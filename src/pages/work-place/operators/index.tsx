@@ -2,7 +2,7 @@ import { Tab, Tabs } from "@material-ui/core";
 import { FC, useState } from "react";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
-import { EditorConfig, WidgetConfig } from "../../../render/interfaces";
+import {  WidgetConfig } from "../../../render/interfaces";
 import WidgetsCenter from "../../../render/WidgetsCenter";
 import { BaseState } from "../../../store";
 import CanvasConfig from "./canvasConfig";
@@ -17,13 +17,11 @@ const Operators: FC<{
   const [value, setValue] = useState(0)
 
   return (
-    <div className="operators">
+    <div className="operators-list">
       <Tabs
-        aria-label="scrollable auto tabs example"
         indicatorColor="primary"
         textColor="primary"
-        variant="scrollable"
-        scrollButtons="auto"
+        scrollButtons="on"
         value={ value }
         onChange={ (_, value) => {
           setValue(value)
@@ -32,7 +30,7 @@ const Operators: FC<{
         <Tab label="通用" />
         <Tab label="样式" />
       </Tabs>
-      <div>
+      <div className="operators">
         {
           value === 0
             ? currWidget === null || currWidget === undefined
@@ -44,7 +42,7 @@ const Operators: FC<{
                   : <SingleConfig
                     dispatch={ dispatch }
                     CustomConfig={ widgetsCenter.get(currWidget)?.Configuration }
-                    widgetConfig={ currWidget as WidgetConfig<EditorConfig[]> }
+                    widgetConfig={ currWidget as WidgetConfig }
                   />
             : <StyleConfig
               widgetConfig={ currWidget }

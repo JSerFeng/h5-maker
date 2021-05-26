@@ -41,6 +41,8 @@ export enum Types {
   AddItem = "AddItem",
   WidgetConfig = "WidgetConfig",
 
+  ChangeCanvasWH = "ChangeCanvasWH",
+
   StartWidgetChange = "StartWidgetChange",
   ChangeWidgetPos = "ChangeWidgetPos",
   CommitWidgetPosChange = "CommitWidgetPosChange",
@@ -68,7 +70,7 @@ const AC = <T extends Types, P = null>(type: T, payload: P): { type: T, payload:
 export const EditorActions = {
   actSelect: (indexes: number[] | null) => AC(Types.SelectMultiple, indexes),
   actSelectOne: (idx: number | null) => AC(Types.SelectOne, idx),
-  actRenderConfig: (config: RenderConfig) => AC(Types.RenderConfig, config),
+  actChangeCanvasWH: (pos: {w: number, h: number}) => AC(Types.ChangeCanvasWH, pos),
   actAddItem: (config: WidgetConfig) => AC(Types.AddItem, config),
   actWidgetConfig: (config: WidgetConfig) => AC(Types.WidgetConfig, config),
 
@@ -196,6 +198,10 @@ const reducer: Reducer<BaseState, GetActionTypes<typeof EditorActions>> = produc
       if (!indexes || indexes.length !== 1) return
       const idx = indexes[0]
       state.workplace.renderConfig.widgets[idx] = action.payload as WritableDraft<WidgetConfig>
+      break
+    }
+    case Types.ChangeCanvasWH: {
+      state.workplace.renderConfig.pos = action.payload
       break
     }
     case Types.StartWidgetChange: {

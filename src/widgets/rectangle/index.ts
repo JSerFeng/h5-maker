@@ -4,7 +4,8 @@ import Rectangle from "./rectangle";
 const pkg: WidgetPackage = {
   FC: Rectangle,
   description: {
-    name: "矩形和圆形",
+    name: "rectangle",
+    showName: "矩形",
     version: "0.0.1",
     description: "基础的矩形，调整圆角可以呈现其他形状",
     editorConfig: [
@@ -19,7 +20,7 @@ const pkg: WidgetPackage = {
       }
     ],
     config: {
-      backgroundColor: "blue"
+      backgroundColor: "lightblue"
     }
   }
 }

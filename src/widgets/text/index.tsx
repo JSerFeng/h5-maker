@@ -1,12 +1,12 @@
 import { EditorTypes, WidgetPackage } from "../../render/interfaces"
-import Text, { TextConfig } from "./Text"
+import Text from "./Text"
 
 
 const widgetPkg: WidgetPackage = {
   FC: Text,
-  Configuration: TextConfig,
   description: {
     name: "text",
+    showName: "文本",
     version: "0.0.1",
     description: "基础文本控件",
     editorConfig: [
@@ -40,7 +40,7 @@ const widgetPkg: WidgetPackage = {
           { label: "靠右", value: "flex-end" },
         ]
       }, {
-        key:"alignItems",
+        key: "alignItems",
         name: "垂直布局",
         type: EditorTypes.Select,
         options: [

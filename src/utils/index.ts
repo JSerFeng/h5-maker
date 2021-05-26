@@ -14,7 +14,8 @@ export enum StickFlags {
 export const createRefLine = (
   { x: l, w: width, h: height, y: t }: { x: number, w: number, h: number, y: number },
   others: { x: number, y: number, w: number, h: number }[],
-  stickTo: StickFlags = StickFlags.NO_STICK
+  stickTo: StickFlags = StickFlags.NO_STICK,
+  showSelf?: boolean
 ): [[number, number, number][], number, number] => {
   const midX = l + width / 2
   const midY = t + height / 2
@@ -43,7 +44,7 @@ export const createRefLine = (
       /**能吸附 */
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_ROW) {
         l = equalWidth ? x : mX - width / 2
-      } else {
+      } else if (showSelf) {
         lines.push([1, midX, 1])
       }
       lines.push([1, mX, 0])
@@ -53,7 +54,7 @@ export const createRefLine = (
       /**能吸附 */
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_COL) {
         t = equalHeight ? y : mY - height / 2
-      } else {
+      } else if (showSelf) {
         lines.push([0, midY, 1])
       }
       lines.push([0, mY, 0])
@@ -62,7 +63,7 @@ export const createRefLine = (
     if ((space = Math.abs(t - y)) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_COL) {
         t = y
-      } else {
+      } else if (showSelf) {
         lines.push([0, t, 1])
       }
       lines.push([0, y, 0])
@@ -71,7 +72,7 @@ export const createRefLine = (
     if ((space = Math.abs(t - (y + h))) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_COL) {
         t = y + h
-      } else {
+      } else if (showSelf) {
         lines.push([0, t, 1])
       }
       lines.push([0, y + h, 0])
@@ -80,7 +81,7 @@ export const createRefLine = (
     if ((space = Math.abs(b - y)) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_COL) {
         t = y - height
-      } else {
+      } else if (showSelf) {
         lines.push([0, b, 1])
       }
       lines.push([0, y, 0])
@@ -89,7 +90,7 @@ export const createRefLine = (
     if ((space = Math.abs(b - (y + h))) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_COL) {
         t = y + h - height
-      } else {
+      } else if (showSelf) {
         lines.push([0, b, 1])
       }
       lines.push([0, y + h, 0])
@@ -98,7 +99,7 @@ export const createRefLine = (
     if ((space = Math.abs(l - x)) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_ROW) {
         l = x
-      } else {
+      } else if (showSelf) {
         lines.push([1, l, 1])
       }
       lines.push([1, x, 0])
@@ -107,7 +108,7 @@ export const createRefLine = (
     if ((space = Math.abs(l - (x + w))) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_ROW) {
         l = x + w
-      } else {
+      } else if (showSelf) {
         lines.push([1, l, 1])
       }
       lines.push([1, x + w, 0])
@@ -116,7 +117,7 @@ export const createRefLine = (
     if ((space = Math.abs(r - x)) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_ROW) {
         l = x - width
-      } else {
+      } else if (showSelf) {
         lines.push([1, r, 1])
       }
       lines.push([1, x, 0])
@@ -125,7 +126,7 @@ export const createRefLine = (
     if ((space = Math.abs(r - (x + w))) < SPACE) {
       if (space <= STICK_SPACE && stickTo & StickFlags.STICK_ROW) {
         l = x + w - width
-      } else {
+      } else if (showSelf) {
         lines.push([1, r, 1])
       }
       lines.push([1, x + w, 0])
@@ -138,7 +139,6 @@ export const createRefLine = (
 export const isUndef = (target: unknown): target is undefined | null => {
   return target === undefined || target === null
 }
-
 
 const { confirm } = Modal;
 
@@ -154,3 +154,28 @@ export function withConfirm(message: string, cb: () => void) {
 export function deepCopy<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
+
+/**获取到屏幕左边的距离 */
+export function getOffsetLeft(node: HTMLElement | null) {
+  let offsetLeft = 0
+
+  while (node && node.offsetLeft) {
+    offsetLeft += node.offsetLeft
+    node = node.offsetParent as HTMLElement
+  }
+
+  return offsetLeft
+}
+
+/**获取到屏幕上边的距离 */
+export function getOffsetTop(node: HTMLElement | null) {
+  let offsetTop = 0
+
+  while (node && node.offsetTop) {
+    offsetTop += node.offsetTop
+    node = node.offsetParent as HTMLElement
+  }
+
+  return offsetTop
+}
+

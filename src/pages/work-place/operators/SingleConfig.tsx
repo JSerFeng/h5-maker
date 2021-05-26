@@ -22,7 +22,7 @@ import NumberText from "../../../components/NumberText";
 const { actWidgetConfig } = EditorActions
 
 const SingleConfig: FC<{
-  widgetConfig: WidgetConfig<EditorConfig[]>,
+  widgetConfig: WidgetConfig,
   dispatch: ReduxDispatch,
   CustomConfig?: ReactComp<WidgetConfigProp> | null
 }> = ({ widgetConfig, dispatch, CustomConfig }) => {
@@ -110,7 +110,7 @@ function getConfig<T extends EditorTypes>(
         setProperty(color.hex)
       } } />
     case EditorTypes.Text:
-      return <TextField value={ value } onChange={ e => {
+      return <TextField multiline value={ value } onChange={ e => {
         setProperty(e.target.value)
       } } />
     case EditorTypes.Number:

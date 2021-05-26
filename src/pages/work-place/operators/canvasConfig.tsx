@@ -2,11 +2,16 @@ import { FC, memo } from "react";
 import { Dispatch } from "redux";
 import { EditorActions } from "../../../store/editorReducer";
 
-import { Button } from "@material-ui/core"
+import { Button, Input } from "@material-ui/core"
 import { connect } from "react-redux";
 import { BaseState } from "../../../store";
+import produce from "immer";
 
-const { actResetDraw, actMoveCanvasToCenter } = EditorActions
+const {
+  actResetDraw,
+  actMoveCanvasToCenter,
+  actChangeCanvasWH
+} = EditorActions
 
 const GeneralConfig: FC<{
   dispatch: Dispatch,
@@ -16,7 +21,30 @@ const GeneralConfig: FC<{
   return (
     <div>
       <div>
-        缩放 { workplace.canvas.scale * 100 }%
+        网页宽度
+        <Input value={ workplace.renderConfig.pos.w } onChange={ (e) => {
+          dispatch(actChangeCanvasWH(produce(workplace.renderConfig.pos, it => {
+            let val: number
+            if ((val = Number(e.target.value))) {
+              it.w = Number(val)
+            }
+          })))
+        } } />
+      </div>
+      <div>
+        网页高度
+        <Input value={ workplace.renderConfig.pos.h } onChange={ (e) => {
+          dispatch(actChangeCanvasWH(produce(workplace.renderConfig.pos, it => {
+            let val: number
+            if ((val = Number(e.target.value))) {
+              it.h = val
+            }
+          })))
+        } } />
+
+      </div>
+      <div>
+        缩放 { (workplace.canvas.scale * 100).toFixed(0) }%
       </div>
       <Button color="secondary" variant="contained" onClick={ () => {
         dispatch(actMoveCanvasToCenter())

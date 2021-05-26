@@ -1,5 +1,4 @@
 import { FC } from "react"
-import { WidgetConfigProp } from "../../render/interfaces"
 import { TextProps } from "./schema"
 
 const Text: FC<TextProps> = (props) => {
@@ -19,15 +18,6 @@ const Text: FC<TextProps> = (props) => {
       alignItems,
     } }>
       <div> { content }</div>
-    </div>
-  )
-}
-
-export const TextConfig: FC<WidgetConfigProp> = ({ widgetConfig, dispatchConfig }) => {
-
-  return (
-    <div>
-      <div>这个设置</div>
     </div>
   )
 }
